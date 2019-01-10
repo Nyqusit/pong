@@ -5,4 +5,4 @@ This is a very simple game made with HTML 5 and javascript. I went into making t
 
 HOW TO PLAY:
 -click the HTML file to launch the game in your defualt browser
--z and a keys to control left player,/ and ; keys control right player 
+-"z" and "a" keys to control left player,"/" and ";" keys control right player 
