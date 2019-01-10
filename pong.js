@@ -1,157 +1,133 @@
-//*****GLOABAL VARIABLE ASSIGNMENT*****
-// *comments in code are verbose to show my understanding
-const playingField = document.getElementById('playingField');
-//using const to reduce the mutatable state
-const testButton = document.getElementById('testButton');//*Debuging*
-let frame = 0;
-let leftKeys=NaN ,rightKeys=NaN; 
-//initializing to NaN so that unintentional key assignment isn't as likely
-let timeDir  = 0;
-let leftY = 0, rightY = 700;
-const playerMovementSpeed = 10;
-let frameWD = 0;
-const ballSpeed =2;
-let leftScore = 0 ,rightScore = 0;
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+let ballX = 200, ballY = 600;
+let leftPlayer = 0, rightPlayer = 0;
+let leftKeys = NaN, rightKeys = NaN;
+let leftUp = false, rightUp = false;
+const playerMovementSpeed = 20;
+let BallDir = {};
+BallDir.currentDir = 'nothing';
+let ballSpeed = 2;
+
 const leftScoreDoc = document.getElementById('leftScore'), rightScoreDoc = document.getElementById('rightScore');
 leftScoreDoc.innerHTML = 0;
 rightScoreDoc.innerHTML = 0;
-let leftExecute = false, rightExecute = false;
-let timeStart =0;
-let leftUp = false, rightUp = false;
-let ballUp =0;
-let rightie, leftie;
-let rightHit = 0, leftHit = 0;
-//*****SETTING RENDERING PROPERTIES*****
-const ctx = playingField.getContext('2d');
 
-//*****SETTING CONTROLS*****
-//a=97 z=122 ;=59 /=47
-window.onkeypress = (evt) =>{
+window.onkeypress =(evt)=>{
 	var key = evt.keyCode;
 	key === 97 || key === 122?leftKeys = key:null;
 	key === 59 || key === 47?rightKeys = key:null;
-	//using strictly equal so that only number types will be compared
-	//trying to reduce code lines with ternary operator to make viablity easier. used this statement so there is two inividual user controls.
+}
+gameReset =()=>{
+	ballY -= (ballY - 400);
+	ballX -= (ballX - 400);
+	ballSpeed = 2;
 }
 
-//*****DEBUGGING*****
-testButton.onclick =()=>{
-	//switchBallDir();
-}
+canvas.width = 800;
+canvas.height = 800;
 
-//******GLOBAL FUNCTIONS*****
-switchBallDir =()=> { 
-	timeDir += 1;
-	timeDir %= 2;
-	//causes time direction to alternate between 0 and 1 when the function is called
-}
 
-//*****VIEW STYLING*****
-playingField.width = 800;
-playingField.height = 800;
+(gameLoop=(frame)=>{
+	//drawing playing field
+	ctx.fillStyle = '#000';
+	ctx.fillRect(0,0,canvas.width,canvas.height)
+	
 
-//*****GAME LOOP******
-(function animate(time) {
-	//*****FRAME DEPENDENT VARIABLE ASSIGNMENT*****
-	let leftHitBox = 30;
-	let rightHitBox = playingField.width-60;//30 for the width of the player and 30 for the width of the ball
-	const revFrame = (frame-playingField.width)*-1
-
-	++timeStart;
-	gameReset=()=>{
-		frame -= frame;
-		timeStart -= timeStart;
-	}
-	testButton.onclick = function(){
-		switchBallDir();
-
-	}
-
-	switch(timeDir){
-		case 0:
-			ballUp = frame+rightHit;
-			frame += ballSpeed;
-			break;
-		case 1:
-			ballUp = ((frame-800)*-1)+rightHit;
-			frame -= ballSpeed;
-			break;
-	}	
-
+	//player controls
 	switch(leftKeys){
 		case 97:
-			leftY>0?leftY -= playerMovementSpeed:null;
+			leftPlayer>0?leftPlayer -= playerMovementSpeed:null;
 			leftUp = true;
 			break;
 		case 122:
-			leftY<playingField.width-100?leftY += playerMovementSpeed:null;
+			leftPlayer<800-100?leftPlayer += playerMovementSpeed:null;
 			leftUp = false;
 			break;
 	}
-
 	switch(rightKeys){
 		case 59:
-			rightY>0?rightY -= playerMovementSpeed:null;
+			rightPlayer>0?rightPlayer -= playerMovementSpeed:null;
 			rightUp = true;
 			break;
 		case 47:
-			rightY<playingField.width-100?rightY += playerMovementSpeed:null;
+			rightPlayer<800-100?rightPlayer += playerMovementSpeed:null;
 			rightUp = false;
 			break;
 	}
+	
+	ballY <= leftPlayer+100 && ballY >= leftPlayer && ballX <= 31?leftHitBox = true:leftHitBox = false;
+	
+	ballY <= rightPlayer+100 && ballY >= rightPlayer && ballX >= 740?rightHitBox = true:rightHitBox = false;
 
-	//*****GAME LOGIC***** 
-	timeDir === 0?leftie = leftY:leftie = (leftY-700)*-1;
-	timeDir === 0?rightie = rightY:rightie = (rightY-700)*-1;
+	//methods for changing ball direction
+	BallDir.northEast = function(){
+			ballX+=ballSpeed;
+			ballY-=ballSpeed;
+			this.currentDir = 'northEast';
+		};
+	BallDir.southEast = function(){
+			ballX+=ballSpeed;
+			ballY+=ballSpeed;
+			this.currentDir = 'southEast';
+		};
+	BallDir.southWest = function(){
+			ballX-=ballSpeed;
+			ballY+=ballSpeed;
+			this.currentDir = 'southWest';
+		};
+	BallDir.northWest = function(){
+			ballX-=ballSpeed;
+			ballY-=ballSpeed;
+			this.currentDir = 'northWest';
+		};
 
-	if(timeStart > 70){ //tells us when to start the game
-		if(frame > rightHitBox && frame > rightie-30 && frame <rightie+100){
-			//-30 to compensate for ball height
-			switchBallDir();
-			rightHit = rightY-20;
+	//ball bouncing logic
+	if(ballX < 810 && ballX > -10 ){
+		if(BallDir.currentDir === 'northWest' || ballY >= 770 && BallDir.currentDir === 'southWest' ){
+			BallDir.northWest();
 		}
-		if(frame < leftHitBox && frame > leftie-30 && frame < leftie+100){
-			switchBallDir();
-			leftHit = leftY-20;
+		if(ballY <= 0 && BallDir.currentDir === 'northWest' || BallDir.currentDir === 'southWest'){
+			BallDir.southWest();
 		}
-		//score
-		if(frame > 900 && !leftExecute){
-			gameReset();
-			leftScoreDoc.innerHTML = ++leftScore; 
-			leftExecute = true;
-		}else if(frame < 800){
-			leftExecute = false;
+		if(BallDir.currentDir ==='southEast' || ballY <= 0 && BallDir.currentDir === 'northEast'){
+			BallDir.southEast();
 		}
-		if(frame < -100 && !rightExecute){
-			gameReset();
-			switchBallDir();
-			rightScoreDoc.innerHTML = ++rightScore; 
-			rightExecute = true;
-		}else if(frame > 0){
-			rightExecute = false;
+		if(ballY >= 770 && BallDir.currentDir === 'southEast' || BallDir.currentDir === 'nothing' || BallDir.currentDir ==='northEast'){
+			BallDir.northEast();
 		}
+
+		if(rightUp && rightHitBox){
+			BallDir.northWest();
+		}else if(!rightUp && rightHitBox){
+			BallDir.southWest();
+		}
+		if(leftUp && leftHitBox){
+			BallDir.northEast();
+		}else if(!leftUp && leftHitBox){
+			BallDir.southEast();
+		}
+	}else{
+		ballX < 0 ? rightScoreDoc.innerHTML++:null;
+		ballX > 800? leftScoreDoc.innerHTML++:null;
+		gameReset();
 	}
-	//*****DRAWRING*****
-	//drawing Field
-	ctx.fillStyle = '#000';
-	ctx.fillRect(0,0,playingField.width,playingField.height)
 
-	//drawing players
+	if(leftHitBox || rightHitBox){
+		ballSpeed += .5;
+	}
+
+	//driawing players
 	ctx.fillStyle = '#ff5050';
-	ctx.fillRect(0,leftY,30,100);//left player
+	ctx.fillRect(0,leftPlayer,30,100);
 	ctx.fillStyle = '#00ffcc';
-	ctx.fillRect(playingField.width-30,rightY,30,100);//right Player
+	ctx.fillRect(770,rightPlayer,30,100);
+
+	console.log(ballX)
 
 	//drawing ball
-	ctx.fillStyle = 'white';
-
-	ctx.fillRect(frame,ballUp,30,30);
-	//console.log(revFrame);
-	//console.log(revFrame)
-	//console.log(leftExecute)
-	//console.log(leftie)
-console.log(ballUp)
-	requestAnimationFrame(animate);
-
-
-})();//IIFE(Immediately Invoked Function Expression)
+	ctx.fillStyle = '#fff';
+	ctx.fillRect(ballX,ballY,30,30)
+	requestAnimationFrame(gameLoop);
+	
+})();
