@@ -1,0 +1,31 @@
+body{
+	background-color: white;
+}
+#leftScore , #rightScore{
+	color:#fff;
+	text-align: center;
+	font-size: 80px;
+
+
+}
+#leftScore{
+		grid-area:a;
+		background-color: #ff5050;
+}
+#rightScore{
+		grid-area:b;
+		background-color: #00ffcc;
+}
+#instructions{
+	
+}
+#box{
+	display: grid;
+
+	width: 800px;
+	height: 100px;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr;
+	grid-template-areas: 
+	"a b"
+}
